@@ -29,4 +29,24 @@ int main(int argc, char *argv[]) {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(IN
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
+
+    mreq.imr_multiaddr.s_addr = inet_addr(group);
+    mreq.imr_interface.s_addr = inet_addr("192.168.56.101"); // lub dynamicznie
+    setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+
+    while (1) {
+        int n = recvfrom(sockfd, buffer, MAXLINE, 0, NULL, 0);
+        if (n < 0) {
+            perror("recvfrom error");
+            continue;
+        }
+        buffer[n] = 0;
+        printf("💬 %s\n", buffer);
+    }
+
+    close(sockfd);
+    return 0;
+}
